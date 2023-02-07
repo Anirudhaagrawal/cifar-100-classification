@@ -66,45 +66,37 @@ class Activation():
         TODO: Implement the sigmoid activation here.
         """
         return (1 / (1 + np.exp(-x)))
-        raise NotImplementedError("Sigmoid not implemented")
-
     def tanh(self, x):
         """
         TODO: Implement tanh here.
         """
-        raise NotImplementedError("Tanh not implemented")
-
+        return np.tanh(x)
     def ReLU(self, x):
         """
         TODO: Implement ReLU here.
         """
-        raise NotImplementedError("ReLU not implemented")
-
+        return np.maximum(0, x)
     def output(self, x):
         """
         TODO: Implement softmax function here.
         Remember to take care of the overflow condition.
         """
-        raise NotImplementedError("output activation not implemented")
-
+        return np.exp(x) / np.sum(np.exp(x), axis=1, keepdims=True)
     def grad_sigmoid(self,x):
         """
         TODO: Compute the gradient for sigmoid here.
         """
-        raise NotImplementedError("Sigmoid gradient not implemented")
-
+        return self.sigmoid(x) * (1 - self.sigmoid(x))
     def grad_tanh(self,x):
         """
         TODO: Compute the gradient for tanh here.
         """
-        raise NotImplementedError("Tanh gradient not implemented")
-
+        return 1 - np.tanh(x)**2
     def grad_ReLU(self,x):
         """
         TODO: Compute the gradient for ReLU here.
         """
-        raise NotImplementedError("ReLU gradient not implemented")
-
+        return np.where(x > 0, 1, 0)
     def grad_output(self, x):
         """
         Deliberately returning 1 for output layer case since we don't multiply by any activation for final layer's delta. Feel free to use/disregard it
