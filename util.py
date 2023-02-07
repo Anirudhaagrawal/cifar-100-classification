@@ -38,8 +38,7 @@ def normalize_data(inp):
     mean = inp.mean(axis=2).reshape(len(inp), 3, 1)
     sd = inp.std(axis=2).reshape(len(inp), 3, 1)
 
-    return (inp - mean) / sd
-    # raise NotImplementedError("normalize_data not implemented")
+    return ((inp - mean) / sd).reshape(len(inp), 3072)
 
 
 
@@ -58,7 +57,6 @@ def one_hot_encoding(labels, num_classes=20):
     """
     res = np.eye(num_classes)[np.array(labels).reshape(-1)]
     return res.reshape(list(labels.shape) + [num_classes])
-    # raise NotImplementedError("one_hot_encoding not implemented")
 
 
 
@@ -96,8 +94,7 @@ def calculateCorrect(y,t):  #Feel free to use this function to return accuracy i
     returns:
         the number of correct predictions
     """
-    raise NotImplementedError("calculateCorrect not implemented")
-
+    return np.sum(np.argmax(y, axis=1) == np.argmax(t, axis=1))
 
 
 def append_bias(X):
@@ -109,8 +106,7 @@ def append_bias(X):
     returns:
         X_bias (N X (d+1)) 2D Array
     """
-    raise NotImplementedError("append_bias not implemented")
-
+    return np.concatenate((X, np.ones((X.shape[0], 1))), axis=1)
 
 
 
