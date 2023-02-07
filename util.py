@@ -34,7 +34,12 @@ def normalize_data(inp):
         normalized inp: N X d 2D array
 
     """
-    raise NotImplementedError("normalize_data not implemented")
+    inp = inp.reshape((len(inp), 3, 1024))
+    mean = inp.mean(axis=2).reshape(len(inp), 3, 1)
+    sd = inp.std(axis=2).reshape(len(inp), 3, 1)
+
+    return (inp - mean) / sd
+    # raise NotImplementedError("normalize_data not implemented")
 
 
 
@@ -51,7 +56,9 @@ def one_hot_encoding(labels, num_classes=20):
         oneHot : N X num_classes 2D array
 
     """
-    raise NotImplementedError("one_hot_encoding not implemented")
+    res = np.eye(num_classes)[np.array(labels).reshape(-1)]
+    return res.reshape(list(labels.shape) + [num_classes])
+    # raise NotImplementedError("one_hot_encoding not implemented")
 
 
 
@@ -155,7 +162,13 @@ def createTrainValSplit(x_train,y_train):
     TODO
     Creates the train-validation split (80-20 split for train-val). Please shuffle the data before creating the train-val split.
     """
-    raise NotImplementedError("createTrainValSplit not implemented")
+    idx = np.random.permutation(len(y_train))
+    x_train, y_train = x_train[idx], y_train[idx]
+
+    split_point = int(0.8 * len(y_train))
+
+    return x_train[:split_point], y_train[:split_point], x_train[split_point:], y_train[split_point:]
+    # raise NotImplementedError("createTrainValSplit not implemented")
 
 
 
@@ -190,17 +203,17 @@ def load_data(path):
     train_labels = np.array(train_labels).reshape((len(train_labels),-1))
     train_images, train_labels, val_images, val_labels = createTrainValSplit(train_images,train_labels)
 
-    train_normalized_images =  None #TODO
-    train_one_hot_labels = None #TODO
+    train_normalized_images = normalize_data(train_images)
+    train_one_hot_labels = one_hot_encoding(train_labels)
 
-    val_normalized_images = None #TODO
-    val_one_hot_labels = None #TODO
+    val_normalized_images = normalize_data(val_images)
+    val_one_hot_labels = one_hot_encoding(val_labels)
 
     test_images_dict = unpickle(os.path.join(cifar_path, "test"))
     test_data = test_images_dict[b'data']
     test_labels = test_images_dict[b'coarse_labels']
     test_images = np.array(test_data)
     test_labels = np.array(test_labels).reshape((len(test_labels), -1))
-    test_normalized_images= None #TODO
-    test_one_hot_labels = None #TODO
+    test_normalized_images= normalize_data(test_images)
+    test_one_hot_labels = one_hot_encoding(test_labels)
     return train_normalized_images, train_one_hot_labels, val_normalized_images, val_one_hot_labels,  test_normalized_images, test_one_hot_labels

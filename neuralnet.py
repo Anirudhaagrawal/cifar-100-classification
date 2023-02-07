@@ -65,6 +65,7 @@ class Activation():
         """
         TODO: Implement the sigmoid activation here.
         """
+        return (1 / (1 + np.exp(-x)))
         raise NotImplementedError("Sigmoid not implemented")
 
     def tanh(self, x):
