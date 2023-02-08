@@ -20,7 +20,6 @@ def load_config(path):
     return yaml.load(open(path, 'r'), Loader=yaml.SafeLoader)
 
 
-
 def normalize_data(inp):
     """
     TODO
@@ -34,7 +33,11 @@ def normalize_data(inp):
         normalized inp: N X d 2D array
 
     """
-    raise NotImplementedError("normalize_data not implemented")
+    inp = inp.reshape((len(inp), 3, 1024))
+    mean = inp.mean(axis=2).reshape(len(inp), 3, 1)
+    sd = inp.std(axis=2).reshape(len(inp), 3, 1)
+
+    return ((inp - mean) / sd).reshape(len(inp), 3072)
 
 
 
@@ -51,7 +54,8 @@ def one_hot_encoding(labels, num_classes=20):
         oneHot : N X num_classes 2D array
 
     """
-    raise NotImplementedError("one_hot_encoding not implemented")
+    res = np.eye(num_classes)[np.array(labels).reshape(-1)]
+    return res.reshape(list(labels.shape) + [num_classes]).reshape(len(labels), num_classes)
 
 
 
@@ -77,7 +81,8 @@ def generate_minibatches(dataset, batch_size=64):
     yield X[l_idx:], y[l_idx:]
 
 
-def calculateCorrect(y,t):  #Feel free to use this function to return accuracy instead of number of correct predictions
+def calculateCorrect(y,
+                     t):  # Feel free to use this function to return accuracy instead of number of correct predictions
     """
     TODO
     Calculates the number of correct predictions
@@ -89,8 +94,7 @@ def calculateCorrect(y,t):  #Feel free to use this function to return accuracy i
     returns:
         the number of correct predictions
     """
-    raise NotImplementedError("calculateCorrect not implemented")
-
+    return np.sum(np.argmax(y, axis=1) == np.argmax(t, axis=1))
 
 
 def append_bias(X):
@@ -102,61 +106,60 @@ def append_bias(X):
     returns:
         X_bias (N X (d+1)) 2D Array
     """
-    raise NotImplementedError("append_bias not implemented")
-
-
+    return np.concatenate((X, np.ones((X.shape[0], 1))), axis=1)
 
 
 def plots(trainEpochLoss, trainEpochAccuracy, valEpochLoss, valEpochAccuracy, earlyStop):
-
     """
     Helper function for creating the plots
     earlyStop is the epoch at which early stop occurred and will correspond to the best model. e.g. earlyStop=-1 means the last epoch was the best one
     """
 
     fig1, ax1 = plt.subplots(figsize=((24, 12)))
-    epochs = np.arange(1,len(trainEpochLoss)+1,1)
+    epochs = np.arange(1, len(trainEpochLoss) + 1, 1)
     ax1.plot(epochs, trainEpochLoss, 'r', label="Training Loss")
     ax1.plot(epochs, valEpochLoss, 'g', label="Validation Loss")
-    plt.scatter(epochs[earlyStop],valEpochLoss[earlyStop],marker='x', c='g',s=400,label='Early Stop Epoch')
-    plt.xticks(ticks=np.arange(min(epochs),max(epochs)+1,10), fontsize=35 )
+    plt.scatter(epochs[earlyStop], valEpochLoss[earlyStop], marker='x', c='g', s=400, label='Early Stop Epoch')
+    plt.xticks(ticks=np.arange(min(epochs), max(epochs) + 1, 10), fontsize=35)
     plt.yticks(fontsize=35)
     ax1.set_title('Loss Plots', fontsize=35.0)
     ax1.set_xlabel('Epochs', fontsize=35.0)
     ax1.set_ylabel('Cross Entropy Loss', fontsize=35.0)
     ax1.legend(loc="upper right", fontsize=35.0)
-    plt.savefig(constants.saveLocation+"loss.eps")
+    plt.savefig(constants.saveLocation + "loss.eps")
     plt.show()
 
     fig2, ax2 = plt.subplots(figsize=((24, 12)))
     ax2.plot(epochs, trainEpochAccuracy, 'r', label="Training Accuracy")
     ax2.plot(epochs, valEpochAccuracy, 'g', label="Validation Accuracy")
     plt.scatter(epochs[earlyStop], valEpochAccuracy[earlyStop], marker='x', c='g', s=400, label='Early Stop Epoch')
-    plt.xticks(ticks=np.arange(min(epochs),max(epochs)+1,10), fontsize=35)
+    plt.xticks(ticks=np.arange(min(epochs), max(epochs) + 1, 10), fontsize=35)
     plt.yticks(fontsize=35)
     ax2.set_title('Accuracy Plots', fontsize=35.0)
     ax2.set_xlabel('Epochs', fontsize=35.0)
     ax2.set_ylabel('Accuracy', fontsize=35.0)
     ax2.legend(loc="lower right", fontsize=35.0)
-    plt.savefig(constants.saveLocation+"accuarcy.eps")
+    plt.savefig(constants.saveLocation + "accuarcy.eps")
     plt.show()
 
-    #Saving the losses and accuracies for further offline use
-    pd.DataFrame(trainEpochLoss).to_csv(constants.saveLocation+"trainEpochLoss.csv")
-    pd.DataFrame(valEpochLoss).to_csv(constants.saveLocation+"valEpochLoss.csv")
-    pd.DataFrame(trainEpochAccuracy).to_csv(constants.saveLocation+"trainEpochAccuracy.csv")
-    pd.DataFrame(valEpochAccuracy).to_csv(constants.saveLocation+"valEpochAccuracy.csv")
+    # Saving the losses and accuracies for further offline use
+    pd.DataFrame(trainEpochLoss).to_csv(constants.saveLocation + "trainEpochLoss.csv")
+    pd.DataFrame(valEpochLoss).to_csv(constants.saveLocation + "valEpochLoss.csv")
+    pd.DataFrame(trainEpochAccuracy).to_csv(constants.saveLocation + "trainEpochAccuracy.csv")
+    pd.DataFrame(valEpochAccuracy).to_csv(constants.saveLocation + "valEpochAccuracy.csv")
 
 
-
-def createTrainValSplit(x_train,y_train):
-
+def createTrainValSplit(x_train, y_train):
     """
     TODO
     Creates the train-validation split (80-20 split for train-val). Please shuffle the data before creating the train-val split.
     """
-    raise NotImplementedError("createTrainValSplit not implemented")
+    idx = np.random.permutation(len(y_train))
+    x_train, y_train = x_train[idx], y_train[idx]
 
+    split_point = int(0.8 * len(y_train))
+
+    return x_train[:split_point], y_train[:split_point], x_train[split_point:], y_train[split_point:]
 
 
 def load_data(path):
@@ -169,6 +172,7 @@ def load_data(path):
         train_normalized_images, train_one_hot_labels, val_normalized_images, val_one_hot_labels,  test_normalized_images, test_one_hot_labels
 
     """
+
     def unpickle(file):
         with open(file, 'rb') as fo:
             dict = pickle.load(fo, encoding='bytes')
@@ -187,20 +191,20 @@ def load_data(path):
     train_labels.extend(label)
     train_images.extend(data)
     train_images = np.array(train_images)
-    train_labels = np.array(train_labels).reshape((len(train_labels),-1))
-    train_images, train_labels, val_images, val_labels = createTrainValSplit(train_images,train_labels)
+    train_labels = np.array(train_labels).reshape((len(train_labels), -1))
+    train_images, train_labels, val_images, val_labels = createTrainValSplit(train_images, train_labels)
 
-    train_normalized_images =  None #TODO
-    train_one_hot_labels = None #TODO
+    train_normalized_images = normalize_data(train_images)
+    train_one_hot_labels = one_hot_encoding(train_labels)
 
-    val_normalized_images = None #TODO
-    val_one_hot_labels = None #TODO
+    val_normalized_images = normalize_data(val_images)
+    val_one_hot_labels = one_hot_encoding(val_labels)
 
     test_images_dict = unpickle(os.path.join(cifar_path, "test"))
     test_data = test_images_dict[b'data']
     test_labels = test_images_dict[b'coarse_labels']
     test_images = np.array(test_data)
     test_labels = np.array(test_labels).reshape((len(test_labels), -1))
-    test_normalized_images= None #TODO
-    test_one_hot_labels = None #TODO
-    return train_normalized_images, train_one_hot_labels, val_normalized_images, val_one_hot_labels,  test_normalized_images, test_one_hot_labels
+    test_normalized_images = normalize_data(test_images)
+    test_one_hot_labels = one_hot_encoding(test_labels)
+    return train_normalized_images, train_one_hot_labels, val_normalized_images, val_one_hot_labels, test_normalized_images, test_one_hot_labels

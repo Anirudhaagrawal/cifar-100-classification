@@ -65,44 +65,45 @@ class Activation():
         """
         TODO: Implement the sigmoid activation here.
         """
-        raise NotImplementedError("Sigmoid not implemented")
+        return (1 / (1 + np.exp(-x)))
 
     def tanh(self, x):
         """
         TODO: Implement tanh here.
         """
-        raise NotImplementedError("Tanh not implemented")
+        return np.tanh(x)
 
     def ReLU(self, x):
         """
         TODO: Implement ReLU here.
         """
-        raise NotImplementedError("ReLU not implemented")
+        return np.maximum(0, x)
 
     def output(self, x):
         """
         TODO: Implement softmax function here.
         Remember to take care of the overflow condition.
         """
-        raise NotImplementedError("output activation not implemented")
+
+        return np.exp(x) / np.sum(np.exp(x), axis=1, keepdims=True)
 
     def grad_sigmoid(self,x):
         """
         TODO: Compute the gradient for sigmoid here.
         """
-        raise NotImplementedError("Sigmoid gradient not implemented")
+        return self.sigmoid(x) * (1 - self.sigmoid(x))
 
     def grad_tanh(self,x):
         """
         TODO: Compute the gradient for tanh here.
         """
-        raise NotImplementedError("Tanh gradient not implemented")
+        return 1 - np.square(self.tanh(x))
 
     def grad_ReLU(self,x):
         """
         TODO: Compute the gradient for ReLU here.
         """
-        raise NotImplementedError("ReLU gradient not implemented")
+        return np.where(x > 0, 1, 0)
 
     def grad_output(self, x):
         """
@@ -126,16 +127,18 @@ class Layer():
 
         self.w = None
         if (weightType == 'random'):
-            self.w = 0.01 * np.random.random((in_units + 1, out_units))
+            # if activation.activation_type != 'output':
+            #     self.w = np.random.normal(0, 0.01, (in_units + 1, out_units +1))
+            # else:
+            self.w = np.random.normal(0, 0.01, (in_units +1, out_units))
 
         self.x = None    # Save the input to forward in this
         self.a = None    #output without activation
         self.z = None    # Output After Activation
         self.activation = activation   #Activation function
-
-
         self.dw = 0  # Save the gradient w.r.t w in this. You can have bias in w itself or uncomment the next line and handle it separately
         # self.d_b = None  # Save the gradient w.r.t b in this
+
 
     def __call__(self, x):
         """
@@ -147,8 +150,12 @@ class Layer():
         """
         TODO: Compute the forward pass (activation of the weighted input) through the layer here and return it.
         """
-        raise NotImplementedError("Forward propagation not implemented for Layer")
 
+        self.x = x
+        self.x = np.append(self.x, np.ones((self.x.shape[0], 1)), axis=1)
+        self.a = np.dot(self.x, self.w)
+        self.z = self.activation(self.a)
+        return self.z
     def backward(self, deltaCur, learning_rate, momentum_gamma, regularization, gradReqd=True):
         """
         TODO: Write the code for backward pass. This takes in gradient from its next layer as input and
@@ -160,7 +167,17 @@ class Layer():
         Feel free to change the function signature if you think of an alternative way to implement the delta calculation or the backward pass.
         gradReqd=True means update self.w with self.dw. gradReqd=False can be helpful for Q-3b
         """
-        raise NotImplementedError("Backward propagation not implemented for Layer")
+
+        if gradReqd:
+            if regularization == 'l2':
+                self.dw = np.dot(self.x.T, deltaCur) + 0.01 * self.w
+            elif regularization == 'l1':
+                self.dw = np.dot(self.x.T, deltaCur) + 0.01 * np.sign(self.w)
+            else:
+                self.dw = np.dot(self.x.T, deltaCur)
+            self.w = self.w - learning_rate * self.dw + momentum_gamma * self.dw
+
+        return np.dot(deltaCur* self.activation.backward(self.a), self.w[:-1, :].T)
 
 
 class Neuralnetwork():
@@ -179,6 +196,12 @@ class Neuralnetwork():
         self.x = None  # Save the input to forward in this
         self.y = None        # For saving the output vector of the model
         self.targets = None  # For saving the targets
+        self.loss = None     # For saving the loss
+        self.loss_grad = None  # For saving the gradient of loss w.r.t output of the model
+        self.config = config
+        self.learning_rate = config['learning_rate']
+        self.momentum_gamma = config['momentum_gamma']
+        self.regularization = config['regularization']
 
         # Add layers specified by layer_specs.
         for i in range(self.num_layers):
@@ -197,27 +220,44 @@ class Neuralnetwork():
         """
         return self.forward(x, targets)
 
+    def accuracy(self, logits, targets):
+        """ TODO: Compute and return the accuracy/number of correct predictions. """
+        return np.sum(np.argmax(logits, axis=1) == np.argmax(targets, axis=1)) / targets.shape[0]
 
+    def calculate_loss(self, logits, targets):
+        '''
+        TODO: compute the categorical cross-entropy loss and return it.
+        '''
+        return -np.sum(targets * np.log(logits)) / targets.shape[0]
     def forward(self, x, targets=None):
         """
         TODO: Compute forward pass through all the layers in the network and return the loss.
         If targets are provided, return loss and accuracy/number of correct predictions as well.
         """
-        raise NotImplementedError("Forward propagation not implemented for NeuralNetwork")
+        self.x = x
+        self.targets = targets
+        for i in range(self.num_layers):
+            self.x = self.layers[i].forward(self.x)
+        self.y = self.x
+        if targets is not None:
+            return self.calculate_loss(self.y, targets), self.accuracy(self.y, targets)
+        else:
+            return self.calculate_loss(self.y, targets)
 
 
-    def loss(self, logits, targets):
-        '''
-        TODO: compute the categorical cross-entropy loss and return it.
-        '''
-        raise NotImplementedError("Loss not implemented for NeuralNetwork")
+
+
 
     def backward(self, gradReqd=True):
         '''
         TODO: Implement backpropagation here by calling backward method of Layers class.
         Call backward methods of individual layers.
         '''
-        raise NotImplementedError("Backward propagation not implemented for NeuralNetwork")
+
+        delta = self.y - self.targets
+        for i in range(self.num_layers - 1, -1, -1):
+            delta = self.layers[i].backward(delta, self.learning_rate, self.momentum_gamma, self.regularization, gradReqd)
+
 
 
 

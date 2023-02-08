@@ -14,6 +14,29 @@ def check_grad(model, x_train, y_train):
 
         Prints gradient difference of values calculated via numerical approximation and backprop implementation
     """
+    epsilon = 1e-5
+    weights = model.weights
+    biases = model.biases
+    for i in range(len(weights)):
+        for j in range(len(weights[i])):
+            for k in range(len(weights[i][j])):
+                weights[i][j][k] += epsilon
+                loss1 = model.loss(x_train, y_train)
+                weights[i][j][k] -= 2*epsilon
+                loss2 = model.loss(x_train, y_train)
+                weights[i][j][k] += epsilon
+                grad = (loss1 - loss2) / (2 * epsilon)
+                print("Weight gradient difference: ", grad - model.gradients["dW" + str(i+1)][j][k])
+
+    for i in range(len(biases)):
+        for j in range(len(biases[i])):
+            biases[i][j] += epsilon
+            loss1 = model.loss(x_train, y_train)
+            biases[i][j] -= 2*epsilon
+            loss2 = model.loss(x_train, y_train)
+            biases[i][j] += epsilon
+            grad = (loss1 - loss2) / (2 * epsilon)
+            print("Bias gradient difference: ", grad - model.gradients["db" + str(i+1)][j])
 
 
 
