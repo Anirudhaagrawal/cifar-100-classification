@@ -97,7 +97,9 @@ class Activation():
         """
         TODO: Compute the gradient for tanh here.
         """
+
         return 1 - np.square(self.tanh(x))
+
 
     def grad_ReLU(self,x):
         """

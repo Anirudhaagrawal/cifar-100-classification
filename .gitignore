@@ -1,4 +1,9 @@
+
 test.py
 .idea/
 ./__pycache__/
 ./data/
+data
+data/*
+__pycache__/
+__pycache__/*

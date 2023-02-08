@@ -55,7 +55,9 @@ def one_hot_encoding(labels, num_classes=20):
 
     """
     res = np.eye(num_classes)[np.array(labels).reshape(-1)]
+
     return res.reshape(list(labels.shape) + [num_classes]).reshape(len(labels), num_classes)
+
 
 
 
@@ -107,6 +109,7 @@ def append_bias(X):
         X_bias (N X (d+1)) 2D Array
     """
     return np.concatenate((X, np.ones((X.shape[0], 1))), axis=1)
+
 
 
 def plots(trainEpochLoss, trainEpochAccuracy, valEpochLoss, valEpochAccuracy, earlyStop):
@@ -205,6 +208,8 @@ def load_data(path):
     test_labels = test_images_dict[b'coarse_labels']
     test_images = np.array(test_data)
     test_labels = np.array(test_labels).reshape((len(test_labels), -1))
+
     test_normalized_images = normalize_data(test_images)
     test_one_hot_labels = one_hot_encoding(test_labels)
     return train_normalized_images, train_one_hot_labels, val_normalized_images, val_one_hot_labels, test_normalized_images, test_one_hot_labels
+
