@@ -169,7 +169,7 @@ class Layer():
         Feel free to change the function signature if you think of an alternative way to implement the delta calculation or the backward pass.
         gradReqd=True means update self.w with self.dw. gradReqd=False can be helpful for Q-3b
         """
-
+        deltaCur= deltaCur * self.activation.backward(self.a)
         if gradReqd:
             if regularization == 'l2':
                 self.dw = np.dot(self.x.T, deltaCur) + 0.01 * self.w
@@ -177,9 +177,9 @@ class Layer():
                 self.dw = np.dot(self.x.T, deltaCur) + 0.01 * np.sign(self.w)
             else:
                 self.dw = np.dot(self.x.T, deltaCur)
-            self.w = self.w - learning_rate * self.dw + momentum_gamma * self.dw
+            self.w = self.w - (learning_rate*self.dw) - (momentum_gamma*self.dw)
 
-        return np.dot(deltaCur* self.activation.backward(self.a), self.w[:-1, :].T)
+        return np.dot(deltaCur, self.w[:-1, :].T)
 
 
 class Neuralnetwork():
