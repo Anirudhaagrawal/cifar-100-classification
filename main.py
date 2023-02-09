@@ -21,7 +21,7 @@ def main(args):
 
     # Read the required config
     # Create different config files for different experiments
-    configFile=None #Will contain the name of the config file to be loaded
+    configFile='config_3d.yaml' #Will contain the name of the config file to be loaded
     if (args.experiment == 'test_gradients'):  #3b
         configFile = None # Create a config file for 3b and change None to the config file name
     elif(args.experiment=='test_momentum'):  #3c
@@ -29,7 +29,7 @@ def main(args):
     elif (args.experiment == 'test_regularization'): #3d
         configFile = None # Create a config file for 3d and change None to the config file name
     elif (args.experiment == 'test_activation'): #3e
-        configFile = None # Create a config file for 3e and change None to the config file name
+        configFile = 'config_3d.yaml' # Create a config file for 3e and change None to the config file name
     elif (args.experiment == 'test_hidden_units'):  #3f-i
         configFile = None # Create a config file for 3f-i and change None to the config file name
     elif (args.experiment == 'test_hidden_layers'):  #3f-ii
@@ -65,6 +65,6 @@ if __name__ == "__main__":
 
     # Parse the input arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('--experiment', type=str, default='test_momentum', help='Specify the experiment that you want to run')
+    parser.add_argument('--experiment', type=str, default='test_activation', help='Specify the experiment that you want to run')
     args = parser.parse_args()
     main(args)

@@ -60,7 +60,6 @@ def train(model, x_train, y_train, x_valid, y_valid, config):
         # Iterate over the minibatches
         for x_batch, y_batch in util.generate_minibatches((x_train, y_train), batch_size):
 
-            # model.layers[1].w[0][0] -= 0.02
             # Calculate the output of the model
             loss, accuracy = model.forward(x_batch, y_batch)
 

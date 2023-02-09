@@ -139,7 +139,7 @@ class Layer():
         self.z = None    # Output After Activation
         self.activation = activation   #Activation function
         self.dw = 0  # Save the gradient w.r.t w in this. You can have bias in w itself or uncomment the next line and handle it separately
-        # self.d_b = None  # Save the gradient w.r.t b in this
+        self.d_b = 0  # Save the gradient w.r.t b in this
 
 
     def __call__(self, x):
@@ -172,12 +172,13 @@ class Layer():
         deltaCur = deltaCur * self.activation.backward(self.a)
         if gradReqd:
             if regularization == 'l2':
-                self.dw = np.dot(self.x.T, deltaCur) +  penalty*self.w
+                self.dw = np.dot(self.x.T, deltaCur) +  penalty*self.w + (momentum_gamma*self.d_b)
             elif regularization == 'l1':
-                self.dw = np.dot(self.x.T, deltaCur) +   penalty* np.sign(self.w)
+                self.dw = np.dot(self.x.T, deltaCur) +   penalty* np.sign(self.w) + (momentum_gamma*self.d_b)
             else:
-                self.dw = np.dot(self.x.T, deltaCur)
-            self.w = self.w - (learning_rate*self.dw) - (momentum_gamma*self.dw)
+                self.dw = np.dot(self.x.T, deltaCur) + (momentum_gamma*self.d_b)
+            self.w = self.w - (learning_rate*self.dw)
+            self.d_b = self.dw
         return np.dot(deltaCur, self.w[:-1, :].T)
 
 
@@ -255,7 +256,6 @@ class Neuralnetwork():
         '''
 
         delta = self.y - self.targets
-        # np.sum(delta)
         for i in range(self.num_layers - 1, -1, -1):
             delta = self.layers[i].backward(delta, self.learning_rate, self.momentum_gamma, self.regularization, self.regularization_penalty, gradReqd=gradReqd,)
 
