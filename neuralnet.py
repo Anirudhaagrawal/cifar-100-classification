@@ -158,7 +158,7 @@ class Layer():
         self.a = np.dot(self.x, self.w)
         self.z = self.activation(self.a)
         return self.z
-    def backward(self, deltaCur, learning_rate, momentum_gamma, regularization, gradReqd=True):
+    def backward(self, deltaCur, learning_rate, momentum_gamma, regularization, penalty=0.0, gradReqd=True):
         """
         TODO: Write the code for backward pass. This takes in gradient from its next layer as input and
         computes gradient for its weights and the delta to pass to its previous layers. gradReqd is used to specify whether to update the weights i.e. whether self.w should
@@ -169,16 +169,15 @@ class Layer():
         Feel free to change the function signature if you think of an alternative way to implement the delta calculation or the backward pass.
         gradReqd=True means update self.w with self.dw. gradReqd=False can be helpful for Q-3b
         """
-        deltaCur= deltaCur * self.activation.backward(self.a)
+        deltaCur = deltaCur * self.activation.backward(self.a)
         if gradReqd:
             if regularization == 'l2':
-                self.dw = np.dot(self.x.T, deltaCur) + 0.01 * self.w
+                self.dw = np.dot(self.x.T, deltaCur) +  penalty*self.w
             elif regularization == 'l1':
-                self.dw = np.dot(self.x.T, deltaCur) + 0.01 * np.sign(self.w)
+                self.dw = np.dot(self.x.T, deltaCur) +   penalty* np.sign(self.w)
             else:
                 self.dw = np.dot(self.x.T, deltaCur)
             self.w = self.w - (learning_rate*self.dw) - (momentum_gamma*self.dw)
-
         return np.dot(deltaCur, self.w[:-1, :].T)
 
 
@@ -204,6 +203,7 @@ class Neuralnetwork():
         self.learning_rate = config['learning_rate']
         self.momentum_gamma = config['momentum_gamma']
         self.regularization = config['regularization']
+        self.regularization_penalty = config['regularization_penalty']
 
         # Add layers specified by layer_specs.
         for i in range(self.num_layers):
@@ -248,8 +248,6 @@ class Neuralnetwork():
 
 
 
-
-
     def backward(self, gradReqd=True):
         '''
         TODO: Implement backpropagation here by calling backward method of Layers class.
@@ -257,8 +255,9 @@ class Neuralnetwork():
         '''
 
         delta = self.y - self.targets
+        # np.sum(delta)
         for i in range(self.num_layers - 1, -1, -1):
-            delta = self.layers[i].backward(delta, self.learning_rate, self.momentum_gamma, self.regularization, gradReqd)
+            delta = self.layers[i].backward(delta, self.learning_rate, self.momentum_gamma, self.regularization, self.regularization_penalty, gradReqd=gradReqd,)
 
 
 

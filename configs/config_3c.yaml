@@ -7,10 +7,10 @@ layer_specs: [3072, 128, 20]  #Represents a 2 layer NN. 3072 is the input layer
 activation: "tanh"
 
 # The learning rate to be used for training.
-learning_rate: 0.0001
+learning_rate: 0.005
 
 # Number of training samples per batch to be passed to network
-batch_size: 64
+batch_size: 1
 
 # Number of epochs to train the model
 epochs: 100
@@ -21,11 +21,8 @@ early_stop: True
 # History for early stopping. Wait for this many epochs to check validation loss / accuracy.
 early_stop_epoch: 5
 
-# Regularization type
-regularization: "l2"  #L2 or L1
-
 # Regularization constant
-L2_penalty: 0
+regularization_penalty: 0.005
 
 # Use momentum for training
 momentum: True
@@ -35,3 +32,9 @@ momentum_gamma: 0
 
 #Weight Type
 weight_type: "random"
+
+#Regularization Type
+regularization: "l2"
+
+#GradReq
+gradReqd: True
