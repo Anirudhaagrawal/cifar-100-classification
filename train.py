@@ -29,6 +29,7 @@ def train(model, x_train, y_train, x_valid, y_valid, config):
     num_epochs = config["epochs"]
     early_stopping = config["early_stop_epoch"]
     gradReqd = config["gradReqd"]
+    early_stop = config["early_stop"]
 
     # Initialize the lists to store the loss and accuracy for each epoch
     trainEpochLoss = []
@@ -111,7 +112,7 @@ def train(model, x_train, y_train, x_valid, y_valid, config):
             epochsSinceLastImprovement += 1
 
         # If the number of epochs since the last improvement is greater than the early stopping
-        if epochsSinceLastImprovement > early_stopping:
+        if epochsSinceLastImprovement > early_stopping and early_stop:
 
             # Break
             break
