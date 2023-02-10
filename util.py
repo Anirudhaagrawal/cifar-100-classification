@@ -1,5 +1,4 @@
-import copy
-import os, gzip
+import os
 import yaml
 import numpy as np
 import pickle
@@ -37,11 +36,7 @@ def normalize_data(inp):
     mean = inp.mean(axis=2).reshape(len(inp), 3, 1)
     sd = inp.std(axis=2).reshape(len(inp), 3, 1)
 
-
     return ((inp - mean) / sd).reshape(len(inp), 3072)
-
-
-
 
 
 def one_hot_encoding(labels, num_classes=20):
@@ -60,8 +55,6 @@ def one_hot_encoding(labels, num_classes=20):
     res = np.eye(num_classes)[np.array(labels).reshape(-1)]
 
     return res.reshape(list(labels.shape) + [num_classes]).reshape(len(labels), num_classes)
-
-
 
 
 def generate_minibatches(dataset, batch_size=64):
@@ -86,7 +79,8 @@ def generate_minibatches(dataset, batch_size=64):
     yield X[l_idx:], y[l_idx:]
 
 
-def calculateCorrect(y, t):  # Feel free to use this function to return accuracy instead of number of correct predictions
+def calculateCorrect(y,
+                     t):  # Feel free to use this function to return accuracy instead of number of correct predictions
     """
     TODO
     Calculates the number of correct predictions
@@ -111,7 +105,6 @@ def append_bias(X):
         X_bias (N X (d+1)) 2D Array
     """
     return np.concatenate((X, np.ones((X.shape[0], 1))), axis=1)
-
 
 
 def plots(trainEpochLoss, trainEpochAccuracy, valEpochLoss, valEpochAccuracy, earlyStop):
@@ -187,8 +180,6 @@ def load_data(path):
 
     train_images = []
     train_labels = []
-    val_images = []
-    val_labels = []
 
     images_dict = unpickle(os.path.join(cifar_path, "train"))
     data = images_dict[b'data']
@@ -214,4 +205,3 @@ def load_data(path):
     test_normalized_images = normalize_data(test_images)
     test_one_hot_labels = one_hot_encoding(test_labels)
     return train_normalized_images, train_one_hot_labels, val_normalized_images, val_one_hot_labels, test_normalized_images, test_one_hot_labels
-

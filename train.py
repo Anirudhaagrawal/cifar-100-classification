@@ -1,13 +1,9 @@
-
 import copy
-from neuralnet import *
 import util
-import matplotlib.pyplot as plt
-import pandas as pd
+
 
 def train(model, x_train, y_train, x_valid, y_valid, config):
     """
-    TODO: Train your model here.
     Learns the weights (parameters) for our model
     Implements mini-batch SGD to train the model.
     Implements Early Stopping.
@@ -24,135 +20,78 @@ def train(model, x_train, y_train, x_valid, y_valid, config):
         the trained model
     """
 
-    # Read in the esssential configs
-    learning_rate = config["learning_rate"]
-    momentum = config["momentum"]
     batch_size = config["batch_size"]
     num_epochs = config["epochs"]
     early_stopping = config["early_stop_epoch"]
-    gradReqd = config["gradReqd"]
-    early_stop = config["early_stop"]
+    early_stop_on = config["early_stop"]
 
-    # Initialize the lists to store the loss and accuracy for each epoch
-    trainEpochLoss = []
-    trainEpochAccuracy = []
-    valEpochLoss = []
-    valEpochAccuracy = []
+    train_epoch_loss = []
+    train_epoch_accuracy = []
+    val_epoch_loss = []
+    val_epoch_accuracy = []
+    best_model = None
+    best_val_accuracy = 0
+    epochs_since_last_improvement = 0
+    early_stop = -1
 
-    # Initialize the best model to None
-    bestModel = None
-
-    # Initialize the best validation accuracy to 0
-    bestValAccuracy = 0
-
-    # Initialize the number of epochs since the last improvement to 0
-    epochsSinceLastImprovement = 0
-
-    # Initialize the early stop to -1
-    earlyStop = -1
-
-    # Iterate over the number of epochs
     for epoch in range(num_epochs):
 
-        # Initialize the number of correct predictions to 0
-        numCorrect = 0
+        num_correct = 0
 
-        # Initialize the total loss to 0
-        totalLoss = 0
+        total_loss = 0
 
-        # Iterate over the minibatches
         for x_batch, y_batch in util.generate_minibatches((x_train, y_train), batch_size):
-
-            # Calculate the output of the model
             loss, accuracy = model.forward(x_batch, y_batch)
 
-            # Calculate the gradients
             model.backward()
 
-            # Calculate the number of correct predictions
-            numCorrect += util.calculateCorrect(model.y, y_batch)
+            num_correct += util.calculateCorrect(model.y, y_batch)
 
-            # Add the loss to the total loss
-            totalLoss += loss
+            total_loss += loss
 
-        # Calculate the training accuracy
-        trainAccuracy = numCorrect/len(x_train)
+        train_accuracy = num_correct / len(x_train)
 
-        # Calculate the training loss
-        trainLoss = totalLoss/len(x_train)
+        train_loss = total_loss / len(x_train)
 
-        # Append the training loss and accuracy to the list
-        trainEpochLoss.append(trainLoss)
-        trainEpochAccuracy.append(trainAccuracy)
+        train_epoch_loss.append(train_loss)
+        train_epoch_accuracy.append(train_accuracy)
 
-        # Calculate the validation accuracy and loss
-        valAccuracy, valLoss = modelTest(model, x_valid, y_valid)
+        val_accuracy, valLoss = model_test(model, x_valid, y_valid)
 
-        # Append the validation loss and accuracy to the list
-        valEpochLoss.append(valLoss)
-        valEpochAccuracy.append(valAccuracy)
+        val_epoch_loss.append(valLoss)
+        val_epoch_accuracy.append(val_accuracy)
 
-        # If the validation accuracy is greater than the best validation accuracy
-        if valAccuracy > bestValAccuracy:
+        if val_accuracy > best_val_accuracy:
 
-            # Update the best validation accuracy
-            bestValAccuracy = valAccuracy
+            best_val_accuracy = val_accuracy
 
-            # Update the best model
-            bestModel = copy.deepcopy(model)
+            best_model = copy.deepcopy(model)
 
-            # Reset the number of epochs since the last improvement
-            epochsSinceLastImprovement = 0
+            epochs_since_last_improvement = 0
 
-            # Update the early stop
-            earlyStop = epoch
+            early_stop = epoch
 
-        # Else
         else:
 
-            # Increment the number of epochs since the last improvement
-            epochsSinceLastImprovement += 1
+            epochs_since_last_improvement += 1
 
-        # If the number of epochs since the last improvement is greater than the early stopping
-        if epochsSinceLastImprovement > early_stopping and early_stop:
-
-            # Break
+        if epochs_since_last_improvement > early_stopping and early_stop_on:
             break
 
-        # Print the epoch, training loss, training accuracy, validation loss and validation accuracy
-        print("Epoch: ", epoch, "Training Loss: ", trainLoss, "Training Accuracy: ", trainAccuracy, "Validation Loss: ", valLoss, "Validation Accuracy: ", valAccuracy)
+        print("Epoch: ", epoch, "Training Loss: ", train_loss, "Training Accuracy: ", train_accuracy,
+              "Validation Loss: ", valLoss, "Validation Accuracy: ", val_accuracy)
 
-    # Print the best validation accuracy
-    print("Best Validation Accuracy: ", bestValAccuracy)
+    print("Best Validation Accuracy: ", best_val_accuracy)
 
-    # Print the early stop
-    print("Early Stop: ", earlyStop)
+    print("Early Stop: ", early_stop)
 
-    # Plot the training loss and validation loss
-    plt.plot(trainEpochLoss, label = "Training Loss")
-    plt.plot(valEpochLoss, label = "Validation Loss")
-    plt.xlabel("Epoch")
-    plt.ylabel("Loss")
-    plt.legend()
-    plt.show()
+    util.plots(train_epoch_loss, train_epoch_accuracy, val_epoch_loss, val_epoch_accuracy, early_stop)
 
-    # Plot the training accuracy and validation accuracy
-    plt.plot(trainEpochAccuracy, label = "Training Accuracy")
-    plt.plot(valEpochAccuracy, label = "Validation Accuracy")
-    plt.xlabel("Epoch")
-    plt.ylabel("Accuracy")
-    plt.legend()
-    plt.show()
+    return best_model
 
-    pd.DataFrame(list(zip(trainEpochLoss, valEpochLoss, trainEpochAccuracy, valEpochAccuracy)), columns =['trainEpochLoss', 'valEpochLoss', 'trainEpochAccuracy', 'valEpochAccuracy']).to_csv(str(learning_rate)+"_"+str(config["regularization_penalty"])+"_"+str(config["batch_size"])+".csv")
 
-    # Return the best model
-    return bestModel
-
-#This is the test method
-def modelTest(model, X_test, y_test):
+def model_test(model, X_test, y_test):
     """
-    TODO
     Calculates and returns the accuracy & loss on the test set.
 
     args:
@@ -165,31 +104,19 @@ def modelTest(model, X_test, y_test):
         test loss
     """
 
-    # Initialize the number of correct predictions to 0
-    numCorrect = 0
+    num_correct = 0
 
-    # Initialize the total loss to 0
-    totalLoss = 0
+    total_loss = 0
 
-    # Iterate over the minibatches
     for x_batch, y_batch in util.generate_minibatches((X_test, y_test), 1):
-
-        # Calculate the output of the model
         loss, accuracy = model.forward(x_batch, y_batch)
 
-        # Calculate the number of correct predictions
-        numCorrect += util.calculateCorrect(model.y, y_batch)
+        num_correct += util.calculateCorrect(model.y, y_batch)
 
-        # Add the loss to the total loss
-        totalLoss += loss
+        total_loss += loss
 
-    # Calculate the test accuracy
-    testAccuracy = numCorrect/len(X_test)
+    test_accuracy = num_correct / len(X_test)
 
-    # Calculate the test loss
-    testLoss = totalLoss/len(X_test)
+    test_loss = total_loss / len(X_test)
 
-    # Return the test accuracy and loss
-    return testAccuracy, testLoss
-
-
+    return test_accuracy, test_loss
