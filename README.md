@@ -7,6 +7,11 @@ One can install the requirements using the following command:
 pip install -r requirements.txt
 ```
 
+Download the dataset by running the following command:
+```    
+sh get_data.sh
+```
+
 ## Usage
 
 To test gradients, run the following command:
@@ -56,6 +61,7 @@ python main.py --experiment test_extra_layer
 ```
 
 To train a model with 100 classes, run the following command:
+For this you will need to make some changes in the util file to make it support 100 classes
 ```
 python main.py --experiment test_100_classes
 ```
