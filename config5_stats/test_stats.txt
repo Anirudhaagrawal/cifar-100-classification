@@ -1,0 +1,3 @@
+Best Validation Accuracy:  0.277
+Early Stop:  15
+Test Accuracy: 0.261  Test Loss: 2.510654385240546

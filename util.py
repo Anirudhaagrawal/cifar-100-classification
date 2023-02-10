@@ -37,7 +37,10 @@ def normalize_data(inp):
     mean = inp.mean(axis=2).reshape(len(inp), 3, 1)
     sd = inp.std(axis=2).reshape(len(inp), 3, 1)
 
+
     return ((inp - mean) / sd).reshape(len(inp), 3072)
+
+
 
 
 
@@ -83,8 +86,7 @@ def generate_minibatches(dataset, batch_size=64):
     yield X[l_idx:], y[l_idx:]
 
 
-def calculateCorrect(y,
-                     t):  # Feel free to use this function to return accuracy instead of number of correct predictions
+def calculateCorrect(y, t):  # Feel free to use this function to return accuracy instead of number of correct predictions
     """
     TODO
     Calculates the number of correct predictions

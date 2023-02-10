@@ -2,6 +2,8 @@
 import copy
 from neuralnet import *
 import util
+import matplotlib.pyplot as plt
+import pandas as pd
 
 def train(model, x_train, y_train, x_valid, y_valid, config):
     """
@@ -28,6 +30,8 @@ def train(model, x_train, y_train, x_valid, y_valid, config):
     batch_size = config["batch_size"]
     num_epochs = config["epochs"]
     early_stopping = config["early_stop_epoch"]
+    gradReqd = config["gradReqd"]
+    early_stop = config["early_stop"]
 
     # Initialize the lists to store the loss and accuracy for each epoch
     trainEpochLoss = []
@@ -110,7 +114,7 @@ def train(model, x_train, y_train, x_valid, y_valid, config):
             epochsSinceLastImprovement += 1
 
         # If the number of epochs since the last improvement is greater than the early stopping
-        if epochsSinceLastImprovement > early_stopping:
+        if epochsSinceLastImprovement > early_stopping and early_stop:
 
             # Break
             break
@@ -123,6 +127,24 @@ def train(model, x_train, y_train, x_valid, y_valid, config):
 
     # Print the early stop
     print("Early Stop: ", earlyStop)
+
+    # Plot the training loss and validation loss
+    plt.plot(trainEpochLoss, label = "Training Loss")
+    plt.plot(valEpochLoss, label = "Validation Loss")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.legend()
+    plt.show()
+
+    # Plot the training accuracy and validation accuracy
+    plt.plot(trainEpochAccuracy, label = "Training Accuracy")
+    plt.plot(valEpochAccuracy, label = "Validation Accuracy")
+    plt.xlabel("Epoch")
+    plt.ylabel("Accuracy")
+    plt.legend()
+    plt.show()
+
+    pd.DataFrame(list(zip(trainEpochLoss, valEpochLoss, trainEpochAccuracy, valEpochAccuracy)), columns =['trainEpochLoss', 'valEpochLoss', 'trainEpochAccuracy', 'valEpochAccuracy']).to_csv(str(learning_rate)+"_"+str(config["regularization_penalty"])+"_"+str(config["batch_size"])+".csv")
 
     # Return the best model
     return bestModel

@@ -1,6 +1,7 @@
 import numpy as np
 import util
 
+
 class Activation():
     """
     The class implements different types of activation functions for
@@ -8,12 +9,13 @@ class Activation():
 
     """
 
-    def __init__(self, activation_type = "sigmoid"):
+    def __init__(self, activation_type="sigmoid"):
         """
         TODO in case you want to add variables here
         Initialize activation type and placeholders here.
         """
-        if activation_type not in ["sigmoid", "tanh", "ReLU","output"]:   #output can be used for the final layer. Feel free to use/remove it
+        if activation_type not in ["sigmoid", "tanh", "ReLU",
+                                   "output"]:  # output can be used for the final layer. Feel free to use/remove it
             raise NotImplementedError(f"{activation_type} is not implemented.")
 
         # Type of non-linear activation.
@@ -60,7 +62,6 @@ class Activation():
         elif self.activation_type == "output":
             return self.grad_output(z)
 
-
     def sigmoid(self, x):
         """
         TODO: Implement the sigmoid activation here.
@@ -87,21 +88,20 @@ class Activation():
 
         return np.exp(x) / np.sum(np.exp(x), axis=1, keepdims=True)
 
-    def grad_sigmoid(self,x):
+    def grad_sigmoid(self, x):
         """
         TODO: Compute the gradient for sigmoid here.
         """
         return self.sigmoid(x) * (1 - self.sigmoid(x))
 
-    def grad_tanh(self,x):
+    def grad_tanh(self, x):
         """
         TODO: Compute the gradient for tanh here.
         """
 
         return 1 - np.square(self.tanh(x))
 
-
-    def grad_ReLU(self,x):
+    def grad_ReLU(self, x):
         """
         TODO: Compute the gradient for ReLU here.
         """
@@ -132,15 +132,13 @@ class Layer():
             # if activation.activation_type != 'output':
             #     self.w = np.random.normal(0, 0.01, (in_units + 1, out_units +1))
             # else:
-            self.w = np.random.normal(0, 0.01, (in_units +1, out_units))
+            self.w = np.random.normal(0, 0.01, (in_units + 1, out_units))
 
-        self.x = None    # Save the input to forward in this
-        self.a = None    #output without activation
-        self.z = None    # Output After Activation
-        self.activation = activation   #Activation function
+        self.x = None  # Save the input to forward in this
+        self.a = None  # output without activation
+        self.z = None  # Output After Activation
+        self.activation = activation  # Activation function
         self.dw = 0  # Save the gradient w.r.t w in this. You can have bias in w itself or uncomment the next line and handle it separately
-        # self.d_b = None  # Save the gradient w.r.t b in this
-
 
     def __call__(self, x):
         """
@@ -158,7 +156,8 @@ class Layer():
         self.a = np.dot(self.x, self.w)
         self.z = self.activation(self.a)
         return self.z
-    def backward(self, deltaCur, learning_rate, momentum_gamma, regularization, gradReqd=True):
+
+    def backward(self, deltaCur, learning_rate, momentum_gamma, regularization, penalty=0.0, gradReqd=True):
         """
         TODO: Write the code for backward pass. This takes in gradient from its next layer as input and
         computes gradient for its weights and the delta to pass to its previous layers. gradReqd is used to specify whether to update the weights i.e. whether self.w should
@@ -169,16 +168,13 @@ class Layer():
         Feel free to change the function signature if you think of an alternative way to implement the delta calculation or the backward pass.
         gradReqd=True means update self.w with self.dw. gradReqd=False can be helpful for Q-3b
         """
-        deltaCur= deltaCur * self.activation.backward(self.a)
+        deltaCur = deltaCur * self.activation.backward(self.a)
         if gradReqd:
             if regularization == 'l2':
-                self.dw = np.dot(self.x.T, deltaCur) + 0.01 * self.w
-            elif regularization == 'l1':
-                self.dw = np.dot(self.x.T, deltaCur) + 0.01 * np.sign(self.w)
+                self.dw = learning_rate * np.dot(self.x.T, deltaCur) + penalty * self.w + momentum_gamma * self.dw
             else:
-                self.dw = np.dot(self.x.T, deltaCur)
-            self.w = self.w - (learning_rate*self.dw) - (momentum_gamma*self.dw)
-
+                self.dw = learning_rate * np.dot(self.x.T, deltaCur) + momentum_gamma * self.dw
+            self.w = self.w - self.dw
         return np.dot(deltaCur, self.w[:-1, :].T)
 
 
@@ -196,14 +192,15 @@ class Neuralnetwork():
         self.layers = []  # Store all layers in this list.
         self.num_layers = len(config['layer_specs']) - 1  # Set num layers here
         self.x = None  # Save the input to forward in this
-        self.y = None        # For saving the output vector of the model
+        self.y = None  # For saving the output vector of the model
         self.targets = None  # For saving the targets
-        self.loss = None     # For saving the loss
+        self.loss = None  # For saving the loss
         self.loss_grad = None  # For saving the gradient of loss w.r.t output of the model
         self.config = config
         self.learning_rate = config['learning_rate']
         self.momentum_gamma = config['momentum_gamma']
         self.regularization = config['regularization']
+        self.regularization_penalty = config['regularization_penalty']
 
         # Add layers specified by layer_specs.
         for i in range(self.num_layers):
@@ -231,6 +228,7 @@ class Neuralnetwork():
         TODO: compute the categorical cross-entropy loss and return it.
         '''
         return -np.sum(targets * np.log(logits)) / targets.shape[0]
+
     def forward(self, x, targets=None):
         """
         TODO: Compute forward pass through all the layers in the network and return the loss.
@@ -246,10 +244,6 @@ class Neuralnetwork():
         else:
             return self.calculate_loss(self.y, targets)
 
-
-
-
-
     def backward(self, gradReqd=True):
         '''
         TODO: Implement backpropagation here by calling backward method of Layers class.
@@ -258,10 +252,5 @@ class Neuralnetwork():
 
         delta = self.y - self.targets
         for i in range(self.num_layers - 1, -1, -1):
-            delta = self.layers[i].backward(delta, self.learning_rate, self.momentum_gamma, self.regularization, gradReqd)
-
-
-
-
-
-
+            delta = self.layers[i].backward(delta, self.learning_rate, self.momentum_gamma, self.regularization,
+                                            self.regularization_penalty, gradReqd=gradReqd, )
