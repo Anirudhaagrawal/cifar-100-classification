@@ -4,9 +4,6 @@ from neuralnet import Neuralnetwork
 def check_grad(model, x_train, y_train):
 
     """
-    TODO
-        Checks if gradients computed numerically are within O(epsilon**2)
-
         args:
             model
             x_train: Small subset of the original train dataset
@@ -14,35 +11,28 @@ def check_grad(model, x_train, y_train):
 
         Prints gradient difference of values calculated via numerical approximation and backprop implementation
     """
-    epsilon = 1e-5
-    weights = model.weights
-    biases = model.biases
-    for i in range(len(weights)):
-        for j in range(len(weights[i])):
-            for k in range(len(weights[i][j])):
-                weights[i][j][k] += epsilon
-                loss1 = model.loss(x_train, y_train)
-                weights[i][j][k] -= 2*epsilon
-                loss2 = model.loss(x_train, y_train)
-                weights[i][j][k] += epsilon
-                grad = (loss1 - loss2) / (2 * epsilon)
-                print("Weight gradient difference: ", grad - model.gradients["dW" + str(i+1)][j][k])
 
-    for i in range(len(biases)):
-        for j in range(len(biases[i])):
-            biases[i][j] += epsilon
-            loss1 = model.loss(x_train, y_train)
-            biases[i][j] -= 2*epsilon
-            loss2 = model.loss(x_train, y_train)
-            biases[i][j] += epsilon
-            grad = (loss1 - loss2) / (2 * epsilon)
-            print("Bias gradient difference: ", grad - model.gradients["db" + str(i+1)][j])
+    epsilon = 1e-5
+    model.forward(x_train, y_train)
+    model.backward()
+
+    for i in range(len(model.layers)):
+        for j in range(len(model.layers[i].w)):
+            for k in range(len(model.layers[i].w[j])):
+                model.layers[i].w[j][k] += epsilon
+                l1, a1 = model.forward(x_train, y_train)
+                model.layers[i].w[j][k] -= 2*epsilon
+                l2, a2 = model.forward(x_train, y_train)
+                model.layers[i].w[j][k] += epsilon
+                numerical_grad = (l1-l2)/(2*epsilon)
+                print("Gradient difference of weights at layer", i, "node", j, "weight", k, "is", abs(numerical_grad - model.layers[i].dw[j][k]))
+
 
 
 
 def checkGradient(x_train,y_train,config):
 
-    subsetSize = 10  #Feel free to change this
+    subsetSize = 10
     sample_idx = np.random.randint(0,len(x_train),subsetSize)
     x_train_sample, y_train_sample = x_train[sample_idx], y_train[sample_idx]
 

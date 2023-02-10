@@ -8,6 +8,12 @@ pip install -r requirements.txt
 ```
 
 ## Usage
+
+To test gradients, run the following command:
+```
+python main.py --experiment test_gradients
+```
+
 To train a model from scratch, run the following command:
 This will train a model without regularization with config in file config_3c.yaml
 

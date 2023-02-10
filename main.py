@@ -20,7 +20,7 @@ import argparse
 def main(args):
     configFile = 'config_3c.yaml'  # Will contain the name of the config file to be loaded
     if (args.experiment == 'test_gradients'):
-        configFile = None
+        configFile = 'config_3c.yaml'
     elif (args.experiment == 'test_learning_rate'):
         configFile = "config_3c.yaml"
     elif (args.experiment == 'test_regularization'):
